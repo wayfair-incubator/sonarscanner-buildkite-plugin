@@ -6,11 +6,11 @@ jobs:
     name: Buildkite Plugin Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-        run: docker-compose run --rm plugin-test
+      - uses: actions/checkout@v2-beta
+      - run: docker-compose run --rm plugin-test
   lint:
     name: Lint bash and markdown
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-        run: docker-compose run --rm lint --check
+      - uses: actions/checkout@v2-beta
+      - run: docker-compose run --rm lint --check
