@@ -1,0 +1,52 @@
+version: "3.7"
+
+x-build-args: &build_args
+  PLUGIN_VERSION: ${PLUGIN_VERSION}
+  BUILD_DATE: ${BUILD_DATE}
+
+services:
+  sonarscanner:
+    image: sonarscanner-buildkite/sonarscanner
+    build:
+      dockerfile: docker/sonarscanner.dockerfile
+      context: .
+      args:
+        <<: *build_args
+        SONAR_SCANNER_VERSION: 4.2.0.1873
+        DEBIAN_VERSION: 10
+
+  sonarscanner-dotnet:
+    image: sonarscanner-buildkite/sonarscanner-dotnet
+    build:
+      dockerfile: docker/sonarscanner-dotnet.dockerfile
+      context: .
+      args:
+        <<: *build_args
+        DOTNET2_IMAGE_TAG: 2.2
+        DOTNET3_IMAGE_TAG: 3.0
+
+  lint:
+    image: sonarscanner-buildkite/sonarscanner-lint
+    command: "--format"
+    build:
+      dockerfile: docker/lint.dockerfile
+      context: .
+      args:
+        DEBIAN_VERSION: 10
+        GOLANG_VERSION: 1.13.4
+    volumes:
+      - ".:/app"
+
+  plugin-test:
+    image: buildkite/plugin-tester
+    volumes:
+      - ".:/plugin:ro"
+
+  plugin-lint:
+    image: buildkite/plugin-linter
+    command:
+      [
+        "--id=ssh://git@github.com/wayfair-contribs/sonarscanner-buildkite-plugin.git",
+      ]
+    volumes:
+      - ".:/plugin:ro"

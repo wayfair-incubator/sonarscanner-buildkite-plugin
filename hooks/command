@@ -1,0 +1,226 @@
+#!/usr/bin/env bash
+set -eo pipefail
+CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null 2>&1 && pwd)"
+
+# shellcheck source=/dev/null
+source "${CUR_DIR}/../.env"
+
+function plugin_read_config() {
+  local var="BUILDKITE_PLUGIN_SONARSCANNER_${1}"
+  local default="${2:-}"
+  echo "${!var:-$default}"
+}
+
+function plugin_read_list_into_result() {
+  result=()
+
+  for prefix in "$@"; do
+    local i=0
+    local parameter="${prefix}_${i}"
+
+    if [[ -n ${!prefix:-} ]]; then
+      echo >&2 "🚨 Plugin received a string for $prefix, expected an array"
+      exit 1
+    fi
+
+    while [[ -n ${!parameter:-} ]]; do
+      result+=("${!parameter}")
+      i=$((i + 1))
+      parameter="${prefix}_${i}"
+    done
+  done
+
+  [[ ${#result[@]} -gt 0 ]] || return 1
+}
+
+function cleanup() {
+  echo "Running rm -rf ${LOCAL_ARTIFACTS_DIR}"
+  rm -rf "${LOCAL_ARTIFACTS_DIR}"
+}
+
+trap cleanup EXIT
+
+# set local envs with fall back value
+ADDITIONAL_FLAGS=$(plugin_read_config ADDITIONAL_FLAGS)
+ARTIFACTS=$(plugin_read_config ARTIFACTS)
+BRANCH_SCAN_TARGET=$(plugin_read_config BRANCH_SCAN_TARGET 'master')
+DOTNET_BUILD_PROJECT=$(plugin_read_config DOTNET_BUILD_PROJECT)
+ENABLE_BRANCH_SCAN=$(plugin_read_config ENABLE_BRANCH_SCAN 'false')
+ENABLE_PULL_REQUEST_SCAN=$(plugin_read_config ENABLE_PULL_REQUEST_SCAN 'false')
+IS_DOTNET=$(plugin_read_config IS_DOTNET 'false')
+LOCAL_ARTIFACTS_DIR="$(mktemp -d "${PWD}/artifacts-tmp.XXXXXXXXXX")"
+PROJECT_KEY=$(plugin_read_config PROJECT_KEY)
+SCAN_ONLY_IF_SOURCES_CHANGED=$(plugin_read_config SCAN_ONLY_IF_SOURCES_CHANGED 'false')
+SONARQUBE_HOST=$(plugin_read_config SONARQUBE_HOST)
+SOURCES=$(plugin_read_config SOURCES '.')
+USES_COMMUNITY_EDITION=$(plugin_read_config USES_COMMUNITY_EDITION 'true')
+WORKDIR="$(plugin_read_config WORKDIR '/workdir')"
+SONARSCANNER_ARGS=()
+
+function execute_scanner() {
+  echo "+++ :docker: :sonarqube: Starting sonar-scanner"
+
+  # The docker [create, cp, start] flow replicates copy-on-checkout used in the
+  # standard buildkite docker plugin. This avoids file permission errors
+  # caused by files that sonarscanner creates.
+
+  DOCKER_CREATE_STATEMENT=()
+  DOCKER_CREATE_STATEMENT+=("docker" "create")
+  DOCKER_CREATE_STATEMENT+=("--workdir" "${WORKDIR}")
+
+  if [[ $IS_DOTNET == "true" ]]; then
+    DOCKER_CREATE_STATEMENT+=("--env" "SONARQUBE_LOGIN=${SONARQUBE_LOGIN}")
+  fi
+
+  if [[ -n $DOTNET_BUILD_PROJECT ]]; then
+    DOCKER_CREATE_STATEMENT+=("--env" "DOTNET_BUILD_PROJECT=$DOTNET_BUILD_PROJECT")
+  fi
+
+  DOCKER_CREATE_STATEMENT+=("${SONARSCANNER_IMAGE}" "${SONARSCANNER_ARGS[@]}")
+
+  # Masks SONARQUBE_LOGIN to prevent leaked creds
+  echo "Running ${DOCKER_CREATE_STATEMENT[*]/${SONARQUBE_LOGIN}/**********}"
+  DOCKERID=$("${DOCKER_CREATE_STATEMENT[@]}")
+
+  echo "Running docker cp ${PWD}/. ${DOCKERID}:${WORKDIR}"
+  docker cp "${PWD}/." "${DOCKERID}:${WORKDIR}"
+
+  if [ -n "${ARTIFACT_PATHS[*]}" ]; then
+    for arg in "${ARTIFACT_PATHS[@]}"; do
+      echo "Running buildkite-agent artifact download ${arg} ${LOCAL_ARTIFACTS_DIR}"
+      buildkite-agent artifact download \
+        "${arg}" \
+        "${LOCAL_ARTIFACTS_DIR}"
+    done
+
+    echo "Running docker cp ${LOCAL_ARTIFACTS_DIR}/. ${DOCKERID}:${WORKDIR}"
+    docker cp "${LOCAL_ARTIFACTS_DIR}/." "${DOCKERID}:${WORKDIR}"
+  fi
+
+  echo "Running docker start -a ${DOCKERID}"
+  docker start -a "${DOCKERID}"
+}
+
+function check_if_sources_changed() {
+  IFS=', ' read -r -a SOURCE_DIRS <<< "$SOURCES"
+  echo "Source directories to scan for: ${SOURCE_DIRS[*]}"
+  # shellcheck disable=SC2251
+  ! CHANGED_FILES="$(git diff --name-only --exit-code "$BRANCH_SCAN_TARGET" -- "${SOURCE_DIRS[@]}")"
+  SOURCES_CHANGED="$?"
+  echo "Changed files: ${CHANGED_FILES:-None}"
+  return "$SOURCES_CHANGED"
+}
+
+function validate_required_parameters() {
+  if [ -z "$PROJECT_KEY" ]; then
+    echo "ERROR: sonarqube project key not set"
+    exit 1
+  fi
+
+  if [ -z "${SONARQUBE_LOGIN}" ]; then
+    echo "ERROR: sonarqube login not set"
+    exit 1
+  fi
+
+  if [ -z "${SONARQUBE_HOST}" ]; then
+    echo "ERROR: sonarqube host URL not set"
+    exit 1
+  fi
+}
+
+validate_required_parameters
+
+if [[ $ENABLE_BRANCH_SCAN == "true" || $ENABLE_PULL_REQUEST_SCAN == "true" ]]; then
+  USING_ENTERPRISE_FEATURE="true"
+else
+  USING_ENTERPRISE_FEATURE="false"
+fi
+
+if [[ $SCAN_ONLY_IF_SOURCES_CHANGED == "true" ]]; then
+  echo "Scan only if sources changed set to $SCAN_ONLY_IF_SOURCES_CHANGED, checking changed files against sources."
+  if check_if_sources_changed; then
+    echo "Targeted sources changed, proceeding with scan."
+  else
+    echo "Target sources not changed, aborting scan."
+    exit 0
+  fi
+fi
+
+echo "SCAN_ONLY_IF_SOURCES_CHANGED set to $SCAN_ONLY_IF_SOURCES_CHANGED"
+
+if [[ $IS_DOTNET == "false" ]]; then
+  SONARSCANNER_IMAGE="sonarscanner-buildkite/sonarscanner:${PLUGIN_VERSION}"
+  PROJECT_KEY_PARAMETER="-Dsonar.projectKey="
+  PARAMETER_PREFIX="-D"
+  SONARSCANNER_ARGS+=("-Dsonar.sources=${SOURCES}")
+else
+  SONARSCANNER_IMAGE="sonarscanner-buildkite/sonarscanner-dotnet:${PLUGIN_VERSION}"
+  PROJECT_KEY_PARAMETER="/k:"
+  PARAMETER_PREFIX="/d:"
+fi
+
+SONARSCANNER_ARGS+=("${PROJECT_KEY_PARAMETER}${PROJECT_KEY}")
+SONARSCANNER_ARGS+=("${PARAMETER_PREFIX}sonar.login=${SONARQUBE_LOGIN}")
+SONARSCANNER_ARGS+=("${PARAMETER_PREFIX}sonar.host.url=${SONARQUBE_HOST}")
+
+if [[ -n $ADDITIONAL_FLAGS ]]; then
+  SONARSCANNER_ARGS+=("$ADDITIONAL_FLAGS")
+elif plugin_read_list_into_result BUILDKITE_PLUGIN_SONARSCANNER_ADDITIONAL_FLAGS; then
+  for arg in "${result[@]}"; do
+    SONARSCANNER_ARGS+=("${arg}")
+  done
+fi
+
+ARTIFACT_PATHS=()
+if [[ -n $ARTIFACTS ]]; then
+  ARTIFACT_PATHS+=("$ARTIFACTS")
+elif plugin_read_list_into_result BUILDKITE_PLUGIN_SONARSCANNER_ARTIFACTS; then
+  for arg in "${result[@]}"; do
+    ARTIFACT_PATHS+=("${arg}")
+  done
+fi
+
+# Checking if trying to do branch or PR scan on community
+if [[ $USES_COMMUNITY_EDITION == "true" && $USING_ENTERPRISE_FEATURE == "true" ]]; then
+  echo "+++ :warning: Enabled PR or Branch Scan but targeting Sonarqube Community Edition"
+  exit 1
+fi
+
+# add pull request analysis
+if [[ $ENABLE_PULL_REQUEST_SCAN == "true" ]]; then
+  echo "Pull request scan enabled, checking PR info"
+  if [[ $BUILDKITE_PULL_REQUEST != "false" ]]; then
+    echo "Current build triggered by PR, doing PR scan"
+    PR_SCAN="true"
+    SONARSCANNER_ARGS+=("${PARAMETER_PREFIX}sonar.pullrequest.key=${BUILDKITE_PULL_REQUEST}")
+    SONARSCANNER_ARGS+=("${PARAMETER_PREFIX}sonar.pullrequest.branch=${BUILDKITE_BRANCH}")
+    SONARSCANNER_ARGS+=("${PARAMETER_PREFIX}sonar.pullrequest.base=${BUILDKITE_PULL_REQUEST_BASE_BRANCH}")
+  else
+    echo "Current build is not triggered by PR, checking if branch scan enabled"
+  fi
+else
+  echo "Pull request scan not eanbled, checking if branch scan enabled"
+fi
+
+if [[ $ENABLE_BRANCH_SCAN == "true" && $PR_SCAN != "true" ]]; then
+  echo "Branch scan enabled, checking branch info"
+  if [[ ${BUILDKITE_BRANCH:-master} == "$BRANCH_SCAN_TARGET" ]]; then
+    echo "Current build is for $BRANCH_SCAN_TARGET, which is the defined 'default' branch, doing 'default' branch scan."
+  else
+    echo "Current build is feature branch build, doing branch scan"
+    SONARSCANNER_ARGS+=("${PARAMETER_PREFIX}sonar.branch.name=${BUILDKITE_BRANCH}")
+    SONARSCANNER_ARGS+=("${PARAMETER_PREFIX}sonar.branch.target=${BRANCH_SCAN_TARGET}")
+  fi
+else
+  echo "Branch scan not enabled"
+fi
+
+if [[ $ENABLE_BRANCH_SCAN == "false" && $ENABLE_PULL_REQUEST_SCAN == "false" && ${BUILDKITE_BRANCH:-master} != "$BRANCH_SCAN_TARGET" ]]; then
+  if [[ $USES_COMMUNITY_EDITION == "true" ]]; then
+    execute_scanner
+  else
+    echo "Both branch scan and pull request scan not enabled, and this is branch build, scan skipped"
+  fi
+else
+  execute_scanner
+fi

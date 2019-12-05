@@ -1,0 +1,41 @@
+name: sonarscanner
+description: Run sonar-scanner
+author: https://github.com/jamescurtin/
+requirements:
+  - docker
+  - bash
+  - git
+configuration:
+  properties:
+    sonarqube_host:
+      type: string
+    project_key:
+      type: string
+    additional_flags:
+      type: [string, array]
+    artifacts:
+      type: [string, array]
+    branch_scan_target:
+      type: string
+    dotnet_build_project:
+      type: string
+    enable_branch_scan:
+      type: boolean
+    enable_pull_request_scan:
+      type: boolean
+    is_dotnet:
+      type: boolean
+    scan_only_if_sources_changed:
+      type: boolean
+    sources:
+      type: string
+    uses_community_edition:
+      type: boolean
+    workdir:
+      type: string
+  required:
+    - project_key
+    - sonarqube_host
+  additionalProperties: false
+  dependencies:
+    dotnet_build_project: [is_dotnet]
