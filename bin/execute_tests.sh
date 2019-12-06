@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-echo "Building Docker images..."
-docker-compose build --build-arg BUILD_DATE="${BUILD_DATE}"
-echo "Running bash & markdown linters..."
+source bin/build_images.sh lint plugin-test plugin-lint
+
+printf "\nRunning bash & markdown linters..."
 docker-compose run --rm lint
-echo "Running plugin unit tests..."
+printf "\nRunning plugin unit tests..."
 docker-compose run --rm plugin-test
-echo "Running plugin linter..."
+printf "\nRunning plugin linter..."
 docker-compose run --rm plugin-lint

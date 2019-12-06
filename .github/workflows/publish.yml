@@ -1,0 +1,16 @@
+name: "Publish"
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  publish:
+    name: Publish Docker Images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2-beta
+      - run: bin/publish_images.sh
+        env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}

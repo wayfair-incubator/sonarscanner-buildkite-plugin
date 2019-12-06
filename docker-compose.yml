@@ -2,12 +2,12 @@ version: "3.7"
 
 x-build-args: &build_args
   PLUGIN_VERSION: ${PLUGIN_VERSION}
-  BUILD_DATE: ${BUILD_DATE}
+  BUILD_DATE: ${BUILD_DATE:-BUILD_DATE_NOT_SET}
   CENTOS_VERSION: 8
 
 services:
   sonarscanner:
-    image: sonarscanner-buildkite/sonarscanner
+    image: sonarscanner-buildkite/sonarscanner:${IMAGE_VERSION:-latest}
     build:
       dockerfile: docker/sonarscanner.dockerfile
       context: .
@@ -16,7 +16,7 @@ services:
         SONAR_SCANNER_VERSION: 4.2.0.1873
 
   sonarscanner-dotnet:
-    image: sonarscanner-buildkite/sonarscanner-dotnet
+    image: sonarscanner-buildkite/sonarscanner-dotnet:${IMAGE_VERSION:-latest}
     build:
       dockerfile: docker/sonarscanner-dotnet.dockerfile
       context: .

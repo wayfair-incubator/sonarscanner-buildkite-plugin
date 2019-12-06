@@ -8,7 +8,7 @@ This plugin performs static code analysis as part of a Buildkite pipeline and re
 WARNING
 -------
 
-This plugin is still in **alpha** release publicly and is not ready for prime-time usage.g
+This plugin is still in **alpha** release publicly and is not ready for prime-time usage.
 
 Usage
 -----
@@ -268,7 +268,7 @@ Contributing
 
 See the [Contributing Guide](CONTRIBUTING.md) for additional information.
 
-To execute tests (requires that `docker` and `docker-compose` are installed):
+To execute tests locally (requires that `docker` and `docker-compose` are installed):
 
 ```bash
 bin/execute_tests.sh
