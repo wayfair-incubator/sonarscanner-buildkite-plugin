@@ -51,7 +51,7 @@ SHFMT_ACTIONS+=("${SHFMT_DEFAULT_ARGS[@]}")
 shfmt "${SHFMT_ACTIONS[@]}" .
 
 echo "Running Shellcheck..."
-shellcheck {hooks/**,**/*.sh}
+shellcheck -x {hooks/**,**/*.sh}
 
 echo "Running Markdown format..."
 if [[ $MARKDOWNFMT_ACTIONS == "-l" ]]; then
