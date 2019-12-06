@@ -1,5 +1,5 @@
-ARG DEBIAN_VERSION=${DEBIAN_VERSION:-10}
-FROM debian:${DEBIAN_VERSION}
+ARG CENTOS_VERSION=${CENTOS_VERSION:-8}
+FROM centos:${CENTOS_VERSION}
 
 ARG SONAR_SCANNER_VERSION=${SONAR_SCANNER_VERSION:-4.2.0.1873}
 ARG VERSION=${PLUGIN_VERSION}
@@ -8,13 +8,14 @@ ARG VCS_URL="https://github.com/wayfair-contribs/sonarscanner-buildkite-plugin"
 
 USER root
 
-RUN apt-get update && \
-    apt-get install -y \
+RUN yum update -y && \
+    yum install -y \
     curl \
-    default-jdk \
+    java-11-openjdk \
     nodejs \
-    unzip \
-    && rm -rf /var/lib/apt/lists/*
+    unzip && \
+    yum clean all && \
+    rm -rf /var/cache/yum
 
 RUN curl -o ./sonarscanner.zip -L https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip && \
     unzip sonarscanner.zip && \
