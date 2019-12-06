@@ -149,12 +149,12 @@ fi
 echo "SCAN_ONLY_IF_SOURCES_CHANGED set to $SCAN_ONLY_IF_SOURCES_CHANGED"
 
 if [[ $IS_DOTNET == "false" ]]; then
-  SONARSCANNER_IMAGE="sonarscanner-buildkite/sonarscanner:${PLUGIN_VERSION}"
+  SONARSCANNER_IMAGE="sonarscannerbuildkite/sonarscanner:${PLUGIN_VERSION}"
   PROJECT_KEY_PARAMETER="-Dsonar.projectKey="
   PARAMETER_PREFIX="-D"
   SONARSCANNER_ARGS+=("-Dsonar.sources=${SOURCES}")
 else
-  SONARSCANNER_IMAGE="sonarscanner-buildkite/sonarscanner-dotnet:${PLUGIN_VERSION}"
+  SONARSCANNER_IMAGE="sonarscannerbuildkite/sonarscanner-dotnet:${PLUGIN_VERSION}"
   PROJECT_KEY_PARAMETER="/k:"
   PARAMETER_PREFIX="/d:"
 fi
