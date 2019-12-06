@@ -7,7 +7,6 @@ ARGS=("$@")
 
 build_images()  {
   docker-compose build \
-    --parallel \
     --build-arg BUILD_DATE="${BUILD_DATE}" \
     "${ARGS[@]}"
 }

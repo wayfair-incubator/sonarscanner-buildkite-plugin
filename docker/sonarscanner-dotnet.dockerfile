@@ -36,7 +36,7 @@ ENTRYPOINT [ "scanner" ]
 
 ARG BUILD_DATE
 LABEL \
-    com.wayfair.name="sonarscanner-buildkite/sonarscanner-dotnet" \
+    com.wayfair.name="sonarscannerbuildkite/sonarscanner-dotnet" \
     com.wayfair.build-date=${BUILD_DATE} \
     com.wayfair.description=${DESCRIPTION} \
     com.wayfair.vsc_url=${VCS_URL} \

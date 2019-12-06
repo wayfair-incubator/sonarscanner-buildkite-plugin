@@ -13,7 +13,8 @@ RUN yum update -y && \
     curl \
     java-11-openjdk \
     nodejs \
-    unzip && \
+    unzip \
+    which && \
     yum clean all && \
     rm -rf /var/cache/yum
 
@@ -22,8 +23,8 @@ RUN curl -o ./sonarscanner.zip -L https://binaries.sonarsource.com/Distribution/
     rm sonarscanner.zip && \
     mv sonar-scanner-${SONAR_SCANNER_VERSION} /usr/lib/sonar-scanner && \
     ln -s /usr/lib/sonar-scanner/bin/sonar-scanner /usr/local/bin/sonar-scanner
-
 COPY docker/sonar-scanner.properties /usr/lib/sonar-scanner/conf/sonar-scanner.properties
+
 COPY docker/entrypoint.sh /usr/bin/scanner
 
 RUN useradd -m sonar
@@ -36,7 +37,7 @@ ENTRYPOINT [ "scanner" ]
 
 ARG BUILD_DATE
 LABEL \
-    com.wayfair.name="sonarscanner-buildkite/sonarscanner" \
+    com.wayfair.name="sonarscannerbuildkite/sonarscanner" \
     com.wayfair.build-date=${BUILD_DATE} \
     com.wayfair.description=${DESCRIPTION} \
     com.wayfair.vsc_url=${VCS_URL} \

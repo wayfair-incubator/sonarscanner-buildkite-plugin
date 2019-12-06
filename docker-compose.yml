@@ -7,7 +7,7 @@ x-build-args: &build_args
 
 services:
   sonarscanner:
-    image: sonarscanner-buildkite/sonarscanner:${IMAGE_VERSION:-latest}
+    image: sonarscannerbuildkite/sonarscanner:${IMAGE_VERSION:-latest}
     build:
       dockerfile: docker/sonarscanner.dockerfile
       context: .
@@ -16,7 +16,7 @@ services:
         SONAR_SCANNER_VERSION: 4.2.0.1873
 
   sonarscanner-dotnet:
-    image: sonarscanner-buildkite/sonarscanner-dotnet:${IMAGE_VERSION:-latest}
+    image: sonarscannerbuildkite/sonarscanner-dotnet:${IMAGE_VERSION:-latest}
     build:
       dockerfile: docker/sonarscanner-dotnet.dockerfile
       context: .
@@ -26,7 +26,7 @@ services:
         DOTNET3_IMAGE_TAG: 3.0
 
   lint:
-    image: sonarscanner-buildkite/sonarscanner-lint
+    image: sonarscannerbuildkite/sonarscanner-lint
     command: "--format"
     build:
       dockerfile: docker/lint.dockerfile
