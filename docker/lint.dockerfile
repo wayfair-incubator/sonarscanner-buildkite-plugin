@@ -1,16 +1,16 @@
 ARG GOLANG_VERSION=${GOLANG_VERSION:-1.13.4}
-ARG DEBIAN_VERSION=${DEBIAN_VERSION:-10}
+ARG CENTOS_VERSION=${CENTOS_VERSION:-8}
 FROM golang:${GOLANG_VERSION} AS gobuilder
 
 RUN cd $(mktemp -d); go mod init tmp; go get mvdan.cc/sh/cmd/shfmt
 RUN go get -u github.com/shurcooL/markdownfmt
 
-FROM debian:${DEBIAN_VERSION} AS debianbuilder
+FROM centos:${CENTOS_VERSION} AS centosbuilder
 
-RUN apt-get update && \
-    apt-get install -y \
+RUN yum update -y && \
+    yum install -y \
     curl \
-    xz-utils
+    xz
 
 ARG SCVERSION="stable"
 
@@ -19,9 +19,9 @@ RUN curl -o shellcheck.tar.xz \
     && tar xf shellcheck.tar.xz \
     && mv "shellcheck-${SCVERSION}/shellcheck" /usr/bin/
 
-FROM debian:${DEBIAN_VERSION}
+FROM centos:${CENTOS_VERSION}
 
-COPY --from=debianbuilder /usr/bin/shellcheck /usr/bin/
+COPY --from=centosbuilder /usr/bin/shellcheck /usr/bin/
 COPY --from=gobuilder /go/bin/* /usr/bin/
 COPY docker/run_formatters.sh /usr/bin/run_formatters
 
