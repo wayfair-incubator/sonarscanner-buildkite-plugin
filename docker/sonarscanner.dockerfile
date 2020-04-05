@@ -29,6 +29,9 @@ COPY docker/entrypoint.sh /usr/bin/scanner
 
 RUN useradd -m sonar
 
+WORKDIR /workdir
+RUN chown -R sonar:sonar /workdir
+
 ENV SONAR_RUNNER_HOME=/usr/lib/sonar-scanner
 
 USER sonar
