@@ -3,7 +3,6 @@ version: "3.7"
 x-build-args: &build_args
   PLUGIN_VERSION: ${PLUGIN_VERSION}
   BUILD_DATE: ${BUILD_DATE:-BUILD_DATE_NOT_SET}
-  CENTOS_VERSION: 8
 
 services:
   sonarscanner:
@@ -22,8 +21,6 @@ services:
       context: .
       args:
         <<: *build_args
-        DOTNET2_IMAGE_TAG: 2.2
-        DOTNET3_IMAGE_TAG: 3.0
 
   lint:
     image: sonarscannerbuildkite/sonarscanner-lint
@@ -31,8 +28,6 @@ services:
     build:
       dockerfile: docker/lint.dockerfile
       context: .
-      args:
-        GOLANG_VERSION: 1.13.4
     volumes:
       - ".:/app"
 

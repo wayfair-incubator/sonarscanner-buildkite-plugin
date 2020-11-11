@@ -1,8 +1,5 @@
-ARG DOTNET2_IMAGE_TAG=${DOTNET2_IMAGE_TAG:-2.2}
-ARG DOTNET3_IMAGE_TAG=${DOTNET3_IMAGE_TAG:-3.0}
-
-FROM mcr.microsoft.com/dotnet/core/sdk:${DOTNET2_IMAGE_TAG} AS core22
-FROM mcr.microsoft.com/dotnet/core/sdk:${DOTNET3_IMAGE_TAG}
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS core22
+FROM mcr.microsoft.com/dotnet/core/sdk:3.0
 
 ARG VERSION=${PLUGIN_VERSION}
 ARG DESCRIPTION="Run sonar-scanner in a .NET Docker container"

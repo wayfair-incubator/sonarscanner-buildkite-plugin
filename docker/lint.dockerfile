@@ -1,11 +1,9 @@
-ARG GOLANG_VERSION=${GOLANG_VERSION:-1.13.4}
-ARG CENTOS_VERSION=${CENTOS_VERSION:-8}
-FROM golang:${GOLANG_VERSION} AS gobuilder
+FROM golang:1.13.4 AS gobuilder
 
 RUN cd $(mktemp -d); go mod init tmp; go get mvdan.cc/sh/cmd/shfmt
 RUN go get -u github.com/shurcooL/markdownfmt
 
-FROM centos:${CENTOS_VERSION} AS centosbuilder
+FROM centos:8 AS centosbuilder
 
 RUN yum update -y && \
     yum install -y \
@@ -19,7 +17,7 @@ RUN curl -o shellcheck.tar.xz \
     && tar xf shellcheck.tar.xz \
     && mv "shellcheck-${SCVERSION}/shellcheck" /usr/bin/
 
-FROM centos:${CENTOS_VERSION}
+FROM centos:8
 
 COPY --from=centosbuilder /usr/bin/shellcheck /usr/bin/
 COPY --from=gobuilder /go/bin/* /usr/bin/
