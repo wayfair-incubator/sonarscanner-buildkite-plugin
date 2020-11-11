@@ -3,7 +3,7 @@ set -euo pipefail
 
 source ".env"
 
-source bin/build_images.sh sonarscanner sonarscanner-dotnet
+source bin/build_images sonarscanner sonarscanner-dotnet
 
 echo "Logging into Docker Hub..."
 echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USER}" --password-stdin

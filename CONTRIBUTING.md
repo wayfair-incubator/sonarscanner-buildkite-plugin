@@ -3,7 +3,7 @@ Contributing
 
 When contributing to this repository, please first discuss the change you wish to make via issue before submitting a change.
 
-All changes must include appropriate unit tests in order to be merged. Please ensure all unit tests pass locally (*i.e.* by running `bin/execute_tests.sh`) before submitting a PR for review.
+All changes must include appropriate unit tests in order to be merged. Please ensure all unit tests pass locally (*i.e.* by running `bin/execute_tests`) before submitting a PR for review.
 
 Pull Request Process
 --------------------
