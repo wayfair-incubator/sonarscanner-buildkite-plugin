@@ -15,7 +15,7 @@ RUN yum update -y && \
 ARG SCVERSION="stable"
 
 RUN curl -o shellcheck.tar.xz \
-    -L "https://storage.googleapis.com/shellcheck/shellcheck-${SCVERSION}.linux.x86_64.tar.xz" \
+    -L "https://github.com/koalaman/shellcheck/releases/download/stable/shellcheck-${SCVERSION}.linux.x86_64.tar.xz" \
     && tar xf shellcheck.tar.xz \
     && mv "shellcheck-${SCVERSION}/shellcheck" /usr/bin/
 
