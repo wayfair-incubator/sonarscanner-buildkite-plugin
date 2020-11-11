@@ -38,9 +38,6 @@ services:
 
   plugin-lint:
     image: buildkite/plugin-linter
-    command:
-      [
-        "--id=ssh://git@github.com/wayfair-contribs/sonarscanner-buildkite-plugin.git",
-      ]
+    command: ["--id", "wayfair-incubator/sonarscanner"]
     volumes:
       - ".:/plugin:ro"

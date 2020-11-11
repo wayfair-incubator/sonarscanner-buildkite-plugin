@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.0
 
 ARG VERSION=${PLUGIN_VERSION}
 ARG DESCRIPTION="Run sonar-scanner in a .NET Docker container"
-ARG VCS_URL="https://github.com/wayfair-contribs/sonarscanner-buildkite-plugin"
+ARG VCS_URL="https://github.com/wayfair-incubator/sonarscanner-buildkite-plugin"
 
 USER root
 
