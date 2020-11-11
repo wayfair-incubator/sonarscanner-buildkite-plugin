@@ -11,7 +11,7 @@ MARKDOWNFMT_ACTIONS="-l"
 
 function usage() {
   cat << EOF
-  usage: run_formatters.sh [--check][--format][--help]
+  usage: run_formatters [--check][--format][--help]
 
   If no arguments are given, will check formatting and syntax of bash and
   markdown files. Will fail if formatting changes are suggested.

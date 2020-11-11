@@ -21,7 +21,7 @@ FROM centos:8
 
 COPY --from=centosbuilder /usr/bin/shellcheck /usr/bin/
 COPY --from=gobuilder /go/bin/* /usr/bin/
-COPY docker/run_formatters.sh /usr/bin/run_formatters
+COPY docker/entrypoints/run_formatters.sh /usr/bin/run_formatters
 
 RUN useradd -m sonar
 USER sonar

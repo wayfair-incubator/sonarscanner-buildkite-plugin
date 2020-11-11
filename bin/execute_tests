@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source bin/build_images.sh lint plugin-test plugin-lint
+source bin/build_images lint plugin-test plugin-lint
 
 printf "\nRunning bash & markdown linters..."
 docker-compose run --rm lint

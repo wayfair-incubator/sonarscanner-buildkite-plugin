@@ -271,7 +271,7 @@ See the [Contributing Guide](CONTRIBUTING.md) for additional information.
 To execute tests locally (requires that `docker` and `docker-compose` are installed):
 
 ```bash
-bin/execute_tests.sh
+bin/execute_tests
 ```
 
 Credits

@@ -14,7 +14,7 @@ RUN apt-get update && \
 
 COPY --from=core22 /usr/share/dotnet /usr/share/dotnet
 COPY docker/SonarQube.Analysis.xml /root/.dotnet/tools/SonarQube.Analysis.xml
-COPY docker/dotnet-entrypoint.sh /usr/bin/scanner
+COPY docker/entrypoints/dotnet-entrypoint.sh /usr/bin/scanner
 
 RUN useradd -m sonar
 

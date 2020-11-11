@@ -24,7 +24,7 @@ RUN curl -o ./sonarscanner.zip -L https://binaries.sonarsource.com/Distribution/
     ln -s /usr/lib/sonar-scanner/bin/sonar-scanner /usr/local/bin/sonar-scanner
 COPY docker/sonar-scanner.properties /usr/lib/sonar-scanner/conf/sonar-scanner.properties
 
-COPY docker/entrypoint.sh /usr/bin/scanner
+COPY docker/entrypoints/entrypoint.sh /usr/bin/scanner
 
 RUN useradd -m sonar
 
