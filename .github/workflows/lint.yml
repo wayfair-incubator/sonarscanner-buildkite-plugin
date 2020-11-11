@@ -1,6 +1,8 @@
 name: "Lint"
 on:
   push:
+    branches:
+      - "*"
     tags-ignore:
       - "*"
 
@@ -9,11 +11,11 @@ jobs:
     name: Buildkite Plugin Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/checkout
+      - uses: actions/checkout@v2
       - run: docker-compose run --rm plugin-lint
   lint:
     name: Lint bash and markdown
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/checkout
+      - uses: actions/checkout@v2
       - run: docker-compose run --rm lint --check
