@@ -1,4 +1,4 @@
-FROM golang:1.15.7 AS gobuilder
+FROM golang:1.15.8 AS gobuilder
 
 RUN cd $(mktemp -d); go mod init tmp; go get mvdan.cc/sh/cmd/shfmt
 RUN go get -u github.com/shurcooL/markdownfmt
