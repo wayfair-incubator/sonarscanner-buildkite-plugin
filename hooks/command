@@ -23,8 +23,8 @@ SCAN_ONLY_IF_SOURCES_CHANGED=$(plugin_read_config SCAN_ONLY_IF_SOURCES_CHANGED '
 SONARQUBE_HOST=$(plugin_read_config SONARQUBE_HOST)
 SOURCES=$(plugin_read_config SOURCES '.')
 USES_COMMUNITY_EDITION=$(plugin_read_config USES_COMMUNITY_EDITION 'true')
-WORKDIR="$(plugin_read_config WORKDIR '/workdir')"
-SONARSCANNER_ARGS=()
+DEFAULT_WORKDIR="/workdir"
+WORKDIR="$(plugin_read_config WORKDIR "${DEFAULT_WORKDIR}")"
 
 function execute_scanner() {
   echo "+++ :docker: :sonarqube: Starting sonar-scanner"
@@ -51,8 +51,8 @@ function execute_scanner() {
   echo "Running ${DOCKER_CREATE_STATEMENT[*]/${SONARQUBE_LOGIN}/**********}"
   DOCKERID=$("${DOCKER_CREATE_STATEMENT[@]}")
 
-  echo "Running docker cp ${PWD}/. ${DOCKERID}:${WORKDIR}"
-  docker cp "${PWD}/." "${DOCKERID}:${WORKDIR}"
+  docker_copy_as_sonar "${PWD}/." "${DOCKERID}:${WORKDIR}"
+
 
   if [ -n "${ARTIFACT_PATHS[*]}" ]; then
     for arg in "${ARTIFACT_PATHS[@]}"; do
@@ -62,8 +62,7 @@ function execute_scanner() {
         "${LOCAL_ARTIFACTS_DIR}"
     done
 
-    echo "Running docker cp ${LOCAL_ARTIFACTS_DIR}/. ${DOCKERID}:${WORKDIR}"
-    docker cp "${LOCAL_ARTIFACTS_DIR}/." "${DOCKERID}:${WORKDIR}"
+    docker_copy_as_sonar "${LOCAL_ARTIFACTS_DIR}/." "${DOCKERID}:${WORKDIR}"
   fi
 
   echo "Running docker start -a ${DOCKERID}"
@@ -147,6 +146,10 @@ elif plugin_read_list_into_result BUILDKITE_PLUGIN_SONARSCANNER_ARTIFACTS; then
   for arg in "${result[@]}"; do
     ARTIFACT_PATHS+=("${arg}")
   done
+fi
+
+if [[ $WORKDIR != $DEFAULT_WORKDIR ]]; then
+  mkdir "${LOCAL_ARTIFACTS_DIR}/.scannerwork"
 fi
 
 # Checking if trying to do branch or PR scan on community
