@@ -26,13 +26,22 @@ USES_COMMUNITY_EDITION=$(plugin_read_config USES_COMMUNITY_EDITION 'true')
 WORKDIR="$(plugin_read_config WORKDIR '/workdir')"
 SONARSCANNER_ARGS=()
 
+BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+echo "Building Docker image"
+
+function build_images()  {
+  docker build -t sonarscannerbuildkite/sonarscanner:0.1.1 "${CUR_DIR}/../sonarscanner/" --build-arg PLUGIN_VERSION="${PLUGIN_VERSION}"
+}
+
 function execute_scanner() {
-  echo "+++ :docker: :sonarqube: Starting sonar-scanner"
+  echo "Building Docker image"
+  build_images
+
+  echo "+++ :docker: :sonarqube: Starting sonar-scanner Test1"
 
   # The docker [create, cp, start] flow replicates copy-on-checkout used in the
   # standard buildkite docker plugin. This avoids file permission errors
   # caused by files that sonarscanner creates.
-
   DOCKER_CREATE_STATEMENT=()
   DOCKER_CREATE_STATEMENT+=("docker" "create")
   DOCKER_CREATE_STATEMENT+=("--workdir" "${WORKDIR}")
@@ -68,6 +77,8 @@ function execute_scanner() {
 
   echo "Running docker start -a ${DOCKERID}"
   docker start -a "${DOCKERID}"
+
+  docker exec -it --user root ${DOCKERID} /bin/bash chown -R sonar:sonar ${WORDIR}
 }
 
 function check_if_sources_changed() {
