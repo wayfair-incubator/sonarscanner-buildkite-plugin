@@ -30,14 +30,14 @@ BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 echo "Building Docker image"
 
 function build_images()  {
-  docker build -t sonarscannerbuildkite/sonarscanner:0.1.1 "${CUR_DIR}/../sonarscanner/" --build-arg PLUGIN_VERSION="${PLUGIN_VERSION}"
+  docker build -t "sonarscannerbuildkite/sonarscanner:${PLUGIN_VERSION}" "${CUR_DIR}/../sonarscanner/" --build-arg PLUGIN_VERSION="${PLUGIN_VERSION}"
 }
 
 function execute_scanner() {
   echo "Building Docker image"
   build_images
 
-  echo "+++ :docker: :sonarqube: Starting sonar-scanner Test1"
+  echo "+++ :docker: :sonarqube: Starting sonar-scanner Test"
 
   # The docker [create, cp, start] flow replicates copy-on-checkout used in the
   # standard buildkite docker plugin. This avoids file permission errors
