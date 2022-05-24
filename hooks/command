@@ -37,7 +37,7 @@ function execute_scanner() {
   #echo "Building Docker image"
   #build_images
 
-  echo "+++ :docker: :sonarqube: Starting sonar-scanner Test"
+  echo "+++ :docker: :sonarqube: Starting sonar-scanner"
 
   # The docker [create, cp, start] flow replicates copy-on-checkout used in the
   # standard buildkite docker plugin. This avoids file permission errors
