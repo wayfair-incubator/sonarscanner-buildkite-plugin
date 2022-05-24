@@ -31,8 +31,8 @@ COPY docker/entrypoints/entrypoint.sh /usr/bin/scanner
 
 RUN useradd -m sonar
 
-WORKDIR /code.hq.twilio.com/authy
-RUN chown -R sonar:sonar /code.hq.twilio.com/authy
+WORKDIR /workdir
+RUN chown -R sonar:sonar /workdir
 
 ENV SONAR_RUNNER_HOME=/usr/lib/sonar-scanner
 
