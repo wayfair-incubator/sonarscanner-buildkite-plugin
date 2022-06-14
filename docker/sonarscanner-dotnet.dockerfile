@@ -1,5 +1,5 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS core22
-FROM mcr.microsoft.com/dotnet/core/sdk:3.0
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.420 AS core22
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.420
 
 ARG VERSION=${PLUGIN_VERSION}
 ARG DESCRIPTION="Run sonar-scanner in a .NET Docker container"
