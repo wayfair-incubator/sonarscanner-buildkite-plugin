@@ -9,7 +9,7 @@ jobs:
     name: Publish Docker Images
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3.1.0
       - run: bin/publish_images
         env:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
